@@ -1,0 +1,444 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// enum
+
+enum Role {
+  DOCTOR
+  CLINIC
+  STUDENT
+  SYSTEM_ADMIN
+}
+
+enum FileCategory {
+  MAIN_PHOTO
+  SUB_PHOTO_1
+  SUB_PHOTO_2
+  SUB_PHOTO_3
+  SUB_PHOTO_4
+  CERTIFICATE_PHOTO
+  IDENTIFICATION_PHOTO
+  CLINIC_JOB_OFFER_THUMBNAIL
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum EducationType {
+  COMPLETE
+  GRADUATION
+  STUDENT
+  ABSENT
+}
+
+enum PreviousType {
+  WORKING
+  NOT_WORKING
+  NEVER_GOT_A_JOB
+}
+
+enum ResignReasonType {
+  PERSONAL_CONVENIENCE
+  COMPANY_CONVENIENCE
+}
+
+enum DriverLicenseType {
+  MT
+  AT
+}
+
+enum SatisfactionType {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+enum JobType {
+  DOCTOR
+  ASSISTANT
+}
+
+enum EmployeeType {
+  FULL_TIME
+  PARTIAL_TIME
+  CONTRACT
+  SPOT
+}
+
+enum AccountApproveStatus {
+  NOT_APPROVED_YET
+  APPROVED
+}
+
+enum BookMarkerType {
+  DOCTOR
+  CLINIC
+}
+
+enum FirstLikeType {
+  DOCTOR
+  CLINIC
+}
+
+enum ContentEnum {
+  FORGET_PASSWORD
+}
+
+enum CertificateType {
+  NATIONAL
+  PRIVATE
+}
+
+enum OfferType {
+  FIXED_DATE
+  BY_DATE
+}
+
+// model
+model File {
+  id               String          @id @default(uuid())
+  fileName         String
+  mimeType         String
+  size             Float?
+  fileCategory     FileCategory
+  account          Account?        @relation(fields: [accountId], references: [id])
+  accountId        String?
+  clinicJobOffer   ClinicJobOffer? @relation(fields: [clinicJobOfferId], references: [id])
+  clinicJobOfferId String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  deletedAt        DateTime?
+}
+
+model Account {
+  id            String       @id @default(uuid())
+  accountName   String?
+  lastName      String?
+  firstName     String?
+  lastNameKana  String?
+  firstNameKana String?
+  birthday      DateTime?
+  postCode      String?
+  city          String?
+  cityKana      String?
+  prefecture    String?
+  address1      String?
+  address1Kana  String?
+  address2      String?
+  address2Kana  String?
+  phoneNumber   String?
+  cognitoId     String?
+  files         File[]
+  role          Role?
+  lastLogin     DateTime?
+  isActive      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
+  doctor        Doctor?
+  student       Student?
+  clinic        Clinic?
+  systemAdmin   SystemAdmin?
+}
+
+model Certificate {
+  id        String    @id @default(uuid())
+  content   String?
+  // type      CertificateType?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  doctor    Doctor?   @relation(fields: [doctorId], references: [id])
+  doctorId  String?
+  clinic    Clinic?   @relation(fields: [clinicId], references: [id])
+  clinicId  String?
+}
+
+model AccountEmployeeTypes {
+  id        String        @id @default(uuid())
+  value     EmployeeType?
+  doctor    Doctor?       @relation(fields: [doctorId], references: [id])
+  doctorId  String?
+  clinic    Clinic?       @relation(fields: [clinicId], references: [id])
+  clinicId  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+}
+
+model MySelect {
+  id               Int               @id @default(autoincrement())
+  selectName       String
+  category         Category          @relation(fields: [categoryId], references: [id])
+  categoryId       Int
+  accountMySelects AccountMySelect[]
+}
+
+model AccountMySelect {
+  id             String   @id @default(uuid())
+  mySelect       MySelect @relation(fields: [mySelectId], references: [id])
+  mySelectId     Int
+  description    String?
+  isBestMySelect Boolean  @default(false)
+  doctor         Doctor?  @relation(fields: [doctorId], references: [id])
+  doctorId       String?
+  clinic         Clinic?  @relation(fields: [clinicId], references: [id])
+  clinicId       String?
+}
+
+model Category {
+  id           Int        @id @default(autoincrement())
+  categoryName String
+  color        String?
+  mySelects    MySelect[]
+}
+
+model BookMark {
+  id         String         @id @default(uuid())
+  doctor     Doctor?        @relation(name: "doctorBookmark", fields: [doctorId], references: [id])
+  doctorId   String?
+  clinic     Clinic?        @relation(name: "clinicBookmark", fields: [clinicId], references: [id])
+  clinicId   String?
+  bookmarker BookMarkerType
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  deletedAt  DateTime?
+}
+
+model DesiredSpotJob {
+  id        String    @id @default(uuid())
+  startTime DateTime?
+  endTime   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  doctor    Doctor?   @relation(fields: [doctorId], references: [id])
+  doctorId  String?
+}
+
+model Student {
+  id        String      @id @default(uuid())
+  gender    GenderType?
+  account   Account     @relation(fields: [accountId], references: [id])
+  accountId String      @unique
+}
+
+model SystemAdmin {
+  id          String     @id @default(uuid())
+  adminRole   AdminRole? @relation(fields: [adminRoleId], references: [id])
+  adminRoleId String?
+  account     Account    @relation(fields: [accountId], references: [id])
+  accountId   String     @unique
+}
+
+model AdminRole {
+  id          String        @id @default(uuid())
+  name        String
+  systemAdmin SystemAdmin[]
+}
+
+model Doctor {
+  id                   String                 @id @default(uuid())
+  numberOfLikes        Int                    @default(0)
+  job                  JobType?
+  gender               GenderType?
+  isMarried            Boolean?
+  obligationToSupport  Boolean?
+  latestUniversityName String?
+  universityFrom       DateTime?
+  universityTo         DateTime?
+  university           EducationType?
+  graduateExpectTime   DateTime?
+  highSchoolName       String?
+  highSchoolFrom       DateTime?
+  highSchoolTo         DateTime?
+  highSchool           EducationType?
+  juniorHighSchoolName String?
+  juniorHighSchoolFrom DateTime?
+  juniorHighSchoolTo   DateTime?
+  juniorHighSchool     EducationType?
+  previousJob          PreviousType?
+  latestCompanyName    String?
+  latestCompanyFrom    DateTime?
+  latestCompanyTo      DateTime?
+  resignReason         ResignReasonType?
+  driverLicenseType    DriverLicenseType?
+  certificates         Certificate[]
+  currentSatisfaction  SatisfactionType?
+  currentAnnualIncome  Int?
+  desiredChangeJobFrom DateTime?
+  desiredChangeJobTo   DateTime?
+  desiredWorkPlace1    String?
+  desiredWorkPlace2    String?
+  desiredCommuteTime   Int?
+  freeText             String?
+  selfPr               String?
+  responseTime         String?
+  desiredSpotJobs      DesiredSpotJob[]
+  bookMarkedClinics    BookMark[]             @relation("doctorBookmark")
+  closestStation       String?
+  doctorMySelects      AccountMySelect[]
+  employeeTypes        AccountEmployeeTypes[]
+  account              Account                @relation(fields: [accountId], references: [id])
+  accountId            String                 @unique
+  matchingList         Matching[]
+  fixedJobDesireSalary Int?
+  blockedClinic        Block[]                @relation("doctorBlock")
+}
+
+model Clinic {
+  id                         String                 @id @default(uuid()) // 1
+  numberOfLikes              Int                    @default(0)
+  job                        JobType?
+  latestUniversityName       String?
+  universityFrom             DateTime?
+  universityTo               DateTime?
+  university                 EducationType?
+  highSchoolName             String?
+  highSchoolFrom             DateTime?
+  highSchoolTo               DateTime?
+  highSchool                 EducationType?
+  juniorHighSchoolName       String?
+  juniorHighSchoolFrom       DateTime?
+  juniorHighSchoolTo         DateTime?
+  juniorHighSchool           EducationType?
+  latestCompanyName          String?
+  latestCompanyFrom          DateTime?
+  latestCompanyTo            DateTime?
+  resignReason               ResignReasonType?
+  certificate                Certificate[]
+  freeText                   String?
+  clinicName                 String?
+  nozaId                     String?
+  employeeTypes              AccountEmployeeTypes[]
+  longtitude                 Float?
+  latitude                   Float?
+  responseTime               String?
+  appealPoint                String?
+  jobOffers                  ClinicJobOffer[]
+  bookMarkedDoctors          BookMark[]             @relation("clinicBookmark")
+  blockedDoctors             Block[]                @relation("clinicBlock")
+  closestStation             String?
+  timeWalkingToClosetStation Int?
+  url                        String?
+  directorFirstName          String?
+  directorLastName           String?
+  directorFirstNameKana      String?
+  contactEmail               String?
+  directorLastNameKana       String?
+  directorBirthDay           DateTime?
+  recruitPersonType          String?
+  approveStatus              AccountApproveStatus?
+  directorGender             GenderType?
+  clinicMySelects            AccountMySelect[]
+  account                    Account                @relation(fields: [accountId], references: [id])
+  accountId                  String                 @unique
+  matchingList               Matching[]
+}
+
+model ClinicJobOffer {
+  id              String        @id @default(uuid())
+  jobType         JobType?
+  jobTitle        String?
+  jobDescription  String?
+  employeeType    EmployeeType?
+  employeePeriod  String?
+  salary          Float?
+  salaryExtraInfo String?
+  allowance       String?
+  probationPeriod String?
+  holidayInfo     String?
+  annualHolidays  String?
+  dutyHours       String?
+  overTimeWork    String?
+  appealPoints    String?
+  benefits        String?
+  socialInsurance String?
+  trainingSystem  String?
+  employeesInfo   String?
+  extraInfo       String?
+  startTime       DateTime?
+  endTime         DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  offerType       OfferType?
+  clinic          Clinic?       @relation(fields: [clinicId], references: [id])
+  clinicId        String?
+  files           File[]
+}
+
+model Contact {
+  id          String      @id @default(uuid())
+  content     ContentEnum
+  accountName String
+  email       String
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+}
+
+model Area {
+  id         Int    @id @default(autoincrement())
+  code       String
+  region     String
+  prefecture String
+  city       String
+  address1   String
+}
+
+model Line {
+  id       Int       @id @default(autoincrement())
+  lineCd   String
+  lineName String
+  stations Station[]
+}
+
+model Station {
+  id          Int    @id @default(autoincrement())
+  stationName String
+  lineCd      String
+  postCode    String
+  line        Line   @relation(fields: [lineId], references: [id])
+  lineId      Int
+}
+
+model Matching {
+  id            Int           @id @default(autoincrement())
+  doctor        Doctor        @relation(fields: [doctorId], references: [id])
+  doctorId      String
+  clinic        Clinic        @relation(fields: [clinicId], references: [id])
+  clinicId      String
+  likedAt       DateTime      @default(now())
+  matchedAt     DateTime?
+  firstLikeType FirstLikeType
+  isMatching    Boolean       @default(false)
+}
+
+model Block {
+  id            String    @id @default(uuid())
+  doctor        Doctor?   @relation(name: "doctorBlock", fields: [doctorId], references: [id])
+  doctorId      String?
+  clinic        Clinic?   @relation(name: "clinicBlock", fields: [clinicId], references: [id])
+  clinicId      String?
+  isDoctorBlock Boolean   @default(false)
+  isClinicBlock Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}

@@ -1,0 +1,20 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AccountEntity {
+  id: ID!
+  accountName: String!
+}
+
+type Query {
+  getAllAccount: [AccountEntity!]!
+}
+
+type Mutation {
+  createArea: String!
+}
+
+type Subscription {
+  commentAdded: String!
+}
